@@ -171,36 +171,53 @@ class SpaceHardMode {
         }
 
         const rotatePoint = (a, b, index) => {
-            const p1 = wordCoordMap[a];
-            const p2 = wordCoordMap[b];
-            const dimensionPool = p1.map((p, i) => i).slice(0, 3) // Do not include time dimension;
-            const plane = pickRandomItems(dimensionPool, 2).picked;
-            plane.sort();
-            let [m, n] = plane;
-            dimensionsUsed.push.apply(dimensionsUsed, plane.filter(d => dimensionsUsed.indexOf(d) == -1));
-            if (m === 0 && n === 2) {
-                // ZX matches the right-hand rule for rotation, XZ (the reverse) does not
-                [m, n] = [n, m];
-            }
-            const planeName = dimensionNames[m] + dimensionNames[n];
-            const planeOp = (dimensionPool.length === 2) ? 'rotated' : (`<span class="highlight">${planeName}</span>-rotated`);
-            let newPoint = p2.slice();
-            let diffM = p2[m] - p1[m];
-            let diffN = p2[n] - p1[n];
-            newPoint[m] -= diffM;
-            newPoint[n] -= diffN;
-            const isSwapped = (m === 2 && n === 0);
-            if (coinFlip()) {
-                newPoint[m] += diffN
-                newPoint[n] += -diffM
-                operations.push(createRotationTemplate(a, b, planeOp, planeName, isSwapped ? `<span class="neg-degree">-90°↺</span>` : `<span class="pos-degree">90°↷</span>`));
-            } else {
-                newPoint[m] += -diffN
-                newPoint[n] += diffM
-                operations.push(createRotationTemplate(a, b, planeOp, planeName, isSwapped ? `<span class="pos-degree">90°↷</span>` : `<span class="neg-degree">-90°↺</span>`));
-            }
-            return newPoint;
-        }
+    const p1 = wordCoordMap[a]; // Origin/Pivot
+    const p2 = wordCoordMap[b]; // The point to move
+    
+    const dimensionPool = p1.map((p, i) => i).slice(0, 3);
+    const { picked: plane } = pickRandomItems(dimensionPool, 2);
+    plane.sort(); // Always [0, 1], [0, 2], or [1, 2]
+
+    let [m, n] = plane;
+
+    // The "Right-Hand Rule" Fix: 
+    // If it's X (0) and Z (2), we treat it as ZX (2, 0) 
+    // so the rotation feels natural to a human observer.
+    if (m === 0 && n === 2) {
+        [m, n] = [n, m];
+    }
+
+    const planeName = dimensionNames[m] + dimensionNames[n];
+    const planeOp = `<span class="highlight">${planeName}</span>-rotated`;
+    
+    // Calculate relative distance from pivot
+    let diffM = p2[m] - p1[m];
+    let diffN = p2[n] - p1[n];
+
+    let newPoint = [...p2]; // Clean copy
+
+    if (coinFlip()) {
+        // --- CLOCKWISE (90°↷) ---
+        // Formula: m' = n, n' = -m
+        newPoint[m] = p1[m] + diffN;
+        newPoint[n] = p1[n] - diffM;
+        
+        operations.push(createRotationTemplate(
+            a, b, planeOp, planeName, `<span class="pos-degree">90°↷</span>`
+        ));
+    } else {
+        // --- ANTICLOCKWISE (90°↺) ---
+        // Formula: m' = -n, n' = m
+        newPoint[m] = p1[m] - diffN;
+        newPoint[n] = p1[n] + diffM;
+        
+        operations.push(createRotationTemplate(
+            a, b, planeOp, planeName, `<span class="neg-degree">90°↺</span>`
+        ));
+    }
+
+    return newPoint; // The "Golden Return"
+};
         const customizeCommands = (pool) => {
             let newPool = pool.filter(command => {
                 if (command === setPoint && savedata.enableTransformSet) {
