@@ -189,17 +189,16 @@ class SpaceHardMode {
             let diffN = p2[n] - p1[n];
             newPoint[m] -= diffM;
             newPoint[n] -= diffN;
+            const isSwapped = (m === 2 && n === 0);
             if (coinFlip()) {
                 newPoint[m] += diffN
                 newPoint[n] += -diffM
-                operations.push(createRotationTemplate(a, b, planeOp, planeName, `<span class="pos-degree">90°↷</span>`));
+                operations.push(createRotationTemplate(a, b, planeOp, planeName, isSwapped ? `<span class="neg-degree">-90°↺</span>` : `<span class="pos-degree">90°↷</span>`));
             } else {
                 newPoint[m] += -diffN
                 newPoint[n] += diffM
-                operations.push(createRotationTemplate(a, b, planeOp, planeName, `<span class="neg-degree">-90°↺</span>`));
+                operations.push(createRotationTemplate(a, b, planeOp, planeName, isSwapped ? `<span class="pos-degree">90°↷</span>` : `<span class="neg-degree">-90°↺</span>`));
             }
-            return newPoint;
-        }
 
         const customizeCommands = (pool) => {
             let newPool = pool.filter(command => {
