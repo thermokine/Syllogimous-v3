@@ -199,7 +199,8 @@ class SpaceHardMode {
                 newPoint[n] += diffM
                 operations.push(createRotationTemplate(a, b, planeOp, planeName, isSwapped ? `<span class="pos-degree">90°↷</span>` : `<span class="neg-degree">-90°↺</span>`));
             }
-
+            return newPoint;
+        }
         const customizeCommands = (pool) => {
             let newPool = pool.filter(command => {
                 if (command === setPoint && savedata.enableTransformSet) {
