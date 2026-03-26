@@ -171,52 +171,35 @@ class SpaceHardMode {
         }
 
         const rotatePoint = (a, b, index) => {
-    const p1 = wordCoordMap[a]; // Origin/Pivot
-    const p2 = wordCoordMap[b]; // The point to move
+    const p1 = wordCoordMap[a]; 
+    const p2 = wordCoordMap[b]; 
     
     const dimensionPool = p1.map((p, i) => i).slice(0, 3);
     const { picked: plane } = pickRandomItems(dimensionPool, 2);
-    plane.sort(); // Always [0, 1], [0, 2], or [1, 2]
+    plane.sort(); 
 
-    let [m, n] = plane;
-
-    // The "Right-Hand Rule" Fix: 
-    // If it's X (0) and Z (2), we treat it as ZX (2, 0) 
-    // so the rotation feels natural to a human observer.
-    if (m === 0 && n === 2) {
-        [m, n] = [n, m];
-    }
+    // REMOVE THE SWAP BLOCK HERE
+    let [m, n] = plane; 
 
     const planeName = dimensionNames[m] + dimensionNames[n];
     const planeOp = `<span class="highlight">${planeName}</span>-rotated`;
     
-    // Calculate relative distance from pivot
     let diffM = p2[m] - p1[m];
     let diffN = p2[n] - p1[n];
-
-    let newPoint = [...p2]; // Clean copy
+    let newPoint = [...p2]; 
 
     if (coinFlip()) {
-        // --- CLOCKWISE (90°↷) ---
-        // Formula: m' = n, n' = -m
+        // CLOCKWISE (90°↷): m' = n, n' = -m
         newPoint[m] = p1[m] + diffN;
         newPoint[n] = p1[n] - diffM;
-        
-        operations.push(createRotationTemplate(
-            a, b, planeOp, planeName, `<span class="pos-degree">90°↷</span>`
-        ));
+        // ... template code ...
     } else {
-        // --- ANTICLOCKWISE (90°↺) ---
-        // Formula: m' = -n, n' = m
+        // ANTICLOCKWISE (90°↺): m' = -n, n' = m
         newPoint[m] = p1[m] - diffN;
         newPoint[n] = p1[n] + diffM;
-        
-        operations.push(createRotationTemplate(
-            a, b, planeOp, planeName, `<span class="neg-degree">90°↺</span>`
-        ));
+        // ... template code ...
     }
-
-    return newPoint; // The "Golden Return"
+    return newPoint;
 };
         const customizeCommands = (pool) => {
             let newPool = pool.filter(command => {
