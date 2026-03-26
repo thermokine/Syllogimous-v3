@@ -171,36 +171,47 @@ class SpaceHardMode {
         }
 
         const rotatePoint = (a, b, index) => {
-    const p1 = wordCoordMap[a]; 
-    const p2 = wordCoordMap[b]; 
+        const p1 = wordCoordMap[a]; // Pivot
+        const p2 = wordCoordMap[b]; // Object
     
-    const dimensionPool = p1.map((p, i) => i).slice(0, 3);
-    const { picked: plane } = pickRandomItems(dimensionPool, 2);
-    plane.sort(); 
+        // Get valid 3D axes (0, 1, 2)
+        const dimensionPool = p1.map((p, i) => i).slice(0, 3);
+        const { picked: plane } = pickRandomItems(dimensionPool, 2);
+        plane.sort(); // Keep m < n for consistent math
 
-    // REMOVE THE SWAP BLOCK HERE
-    let [m, n] = plane; 
+        let [m, n] = plane; 
 
-    const planeName = dimensionNames[m] + dimensionNames[n];
-    const planeOp = `<span class="highlight">${planeName}</span>-rotated`;
+        const planeName = dimensionNames[m] + dimensionNames[n];
+        const planeOp = `<span class="highlight">${planeName}</span>-rotated`;
     
-    let diffM = p2[m] - p1[m];
-    let diffN = p2[n] - p1[n];
-    let newPoint = [...p2]; 
+        let diffM = p2[m] - p1[m];
+        let diffN = p2[n] - p1[n];
 
-    if (coinFlip()) {
-        // CLOCKWISE (90°↷): m' = n, n' = -m
-        newPoint[m] = p1[m] + diffN;
-        newPoint[n] = p1[n] - diffM;
-        // ... template code ...
-    } else {
-        // ANTICLOCKWISE (90°↺): m' = -n, n' = m
-        newPoint[m] = p1[m] - diffN;
-        newPoint[n] = p1[n] + diffM;
-        // ... template code ...
-    }
-    return newPoint;
-};
+        let newPoint = [...p2];
+
+        if (coinFlip()) {
+            // --- CLOCKWISE (90°↷) ---
+            // Formula: New M = PivotM + diffN, New N = PivotN - diffM
+            newPoint[m] = p1[m] + diffN;
+            newPoint[n] = p1[n] - diffM;
+        
+            operations.push(createRotationTemplate(
+                a, b, planeOp, planeName, `<span class="pos-degree">90°↷</span>`
+            ));
+        } else {
+            // --- ANTICLOCKWISE (90°↺) ---
+            // Formula: New M = PivotM - diffN, New N = PivotN + diffM
+            newPoint[m] = p1[m] - diffN;
+            newPoint[n] = p1[n] + diffM;
+        
+            operations.push(createRotationTemplate(
+                a, b, planeOp, planeName, `<span class="neg-degree">90°↺</span>`
+            ));
+        }
+
+        return newPoint;
+    };
+           
         const customizeCommands = (pool) => {
             let newPool = pool.filter(command => {
                 if (command === setPoint && savedata.enableTransformSet) {
